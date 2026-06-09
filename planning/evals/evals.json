@@ -1,0 +1,23 @@
+{
+  "skill_name": "planning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/planning EDQ-729",
+      "expected_output": "Fetches Jira ticket EDQ-729, explores timon codebase, asks clarifying questions, produces plan.md and digest.html under .claude/plans/EDQ-729/. Plan should have phases if work is independently shippable, digest should be code-free HTML.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "/planning EDQ-555 Add rate limiting to OTP verification: reject shoppers after 3 failed attempts within a 24-hour window, storing the attempt count on the shopper record and returning a clear denial reason",
+      "expected_output": "Uses provided description (no Jira fetch). Explores timon for OTP-related models/services. Asks clarifying questions. Produces phased plan: likely Phase 1 migration (add column), Phase 2 logic. Digest is functional/structural, no code.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "/planning EDQ-300 Migrate all legacy Command classes in the checkout pack to ApplicationOperation pattern, following the sequra-commons ApplicationOperation interface",
+      "expected_output": "Explores packs/checkout, finds Command classes, understands ApplicationOperation pattern. Asks questions if needed. Produces a single-phase or multi-phase plan depending on scope. Recognizes this as a refactoring — no user-facing change, phases based on whether chunks can be merged independently.",
+      "files": []
+    }
+  ]
+}
