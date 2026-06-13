@@ -2,9 +2,9 @@
 name: planning
 description: >
   Analyze a codebase and produce a structured implementation plan for a ticket or feature.
-  Saves the plan as plan.md (full technical detail) and digest.html (functional overview, no code)
-  under .claude/plans/<ticket-id>/. Splits work into independently shippable phases/PRs when it
-  genuinely makes sense — for frontend complex screens uses vertical slices gated by feature flags.
+  Saves the plan as plan.md under .claude/plans/<ticket-id>/, then generates a visual HTML digest
+  using the /digest skill. Splits work into independently shippable phases/PRs when it genuinely
+  makes sense — for frontend complex screens uses vertical slices gated by feature flags.
   Use this skill whenever the user says "/planning", "make a plan", "plan this ticket", "break this
   down into phases", "create an implementation plan", or provides a ticket ID and wants to plan work.
   Also trigger when the user wants to know how to approach a feature before writing code.
@@ -133,8 +133,13 @@ Include code snippets only when a concept is genuinely hard to convey without on
 non-obvious data structure or a subtle API contract). When in doubt, leave code out of plan.md
 too — prose is enough.
 
-### 8. Tell the user where to find the plan
+### 8. Generate the digest
 
-Tell the user:
+Use the `/digest` skill to generate the visual HTML overview from the plan you just wrote:
+```
+/digest <TICKET-ID>
+```
+
+Then tell the user:
 - `plan.md` is at `.claude/plans/<TICKET-ID>/plan.md`
-- They can run `/digest <TICKET-ID>` to generate a visual HTML overview of the approach
+- `digest.html` is at `.claude/plans/<TICKET-ID>/digest.html`

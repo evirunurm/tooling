@@ -50,6 +50,11 @@ Do not extract file lists or step checklists — those stay in plan.md.
 Save to `.claude/plans/<TICKET-ID>/digest.html`. Self-contained, no external dependencies,
 all styles inline. No JS frameworks.
 
+**All visual styling is governed by `DESIGN.md`** (same directory as this skill). Read it and
+apply it — every color, font, spacing value, decorative element, and motion rule comes from
+there. The digest should look like a data terminal displaying a plan, not a generic document.
+When in doubt about how to style something, defer to DESIGN.md.
+
 #### Overall page structure
 
 ```
@@ -64,16 +69,15 @@ FILES TABLE     — minimal reference table at the bottom
 
 #### HEADER
 
-Dark background. Large title. Ticket ID badge. A one-line hook (not the full summary —
-just enough to orient the reader in five words).
+Title, ticket ID (as a data label), and a one-line hook (not the full summary — just enough
+to orient the reader in five words). A status dot pulses next to the ticket ID.
 
 ---
 
 #### PROBLEM BAND
 
-A visually distinct section (slightly tinted background, left accent bar, or similar).
-2–3 sentences max. Plain English. Answers: "What is wrong or missing today, and why does
-it matter?" No implementation language.
+A visually distinct section with a left accent line. 2–3 sentences max. Plain English. Answers:
+"What is wrong or missing today, and why does it matter?" No implementation language.
 
 ---
 
@@ -85,13 +89,7 @@ legible* without reading anything else.
 Use a visual layout — not prose, not a list. Good options:
 
 **Before → After** (for migrations, refactors, data changes):
-Three boxes in a row:
-```
-[ Current State ]  →→  [ This Work ]  →→  [ End State ]
-"Carts have no         "Backfill +         "All orders
- improved_status"       mapping SQL"        queryable by
-                                            new status"
-```
+Three boxes in a row showing current state, the work, and end state, connected by arrows.
 
 **Concept map** (for new features or flows):
 Show the key moving parts as labelled boxes with arrows between them. Not a full architecture
@@ -100,8 +98,8 @@ diagram — just the 3–5 concepts that interact in this solution.
 **Decision diagram** (for branching logic or feature flags):
 Show the flag/condition and what each branch enables.
 
-Each visual should have a short caption (one sentence) below it explaining *why* this is
-the right approach, not what it shows.
+Each visual should have a short caption (one sentence) below it explaining *why* this is the
+right approach, not what it shows.
 
 Use pure CSS (flexbox, borders, pseudo-elements for arrows). Keep it clean. No more than
 3 visual elements — if you need more, the approach section has drifted into implementation.
@@ -122,7 +120,9 @@ observable behavior, not file count.
 changed, and *why this phase comes before the next*. If there's one phase, explain why it's
 all together. Domain vocabulary is fine; file paths are not.
 
-**Phase badge** — "Phase N of M" in the corner.
+**Phase badge** — "PHASE N/M" data label in the corner, with a status dot.
+
+Separator between cards: a gradient-fade horizontal rule (as defined in DESIGN.md).
 
 No checklists. No file names. No step bullets. The developer can open plan.md for those.
 
@@ -132,16 +132,12 @@ If there's only one phase, a single card works — just drop the badge.
 
 #### FILES TABLE
 
-At the bottom, visually separated from the rest. Titled "Files touched".
-
-| File | Action | Why |
-|------|--------|-----|
-| `path/to/file.rb` | Modified | One sentence on what role it plays |
+At the bottom, visually separated from the rest. Section title as a data label. File paths
+in monospace, actions in uppercase monospace as data labels (ADDED / MODIFIED / GENERATED),
+and a brief "Why" column.
 
 Keep the "Why" column brief. This table is reference material, not the story — the reader
 should already understand the approach before they reach it.
-
-Action values: Added / Modified / Generated (for db/structure.sql etc.)
 
 ---
 
@@ -154,19 +150,6 @@ open .claude/plans/<TICKET-ID>/digest.html
 Tell the user where the file is and that plan.md has the full technical detail.
 
 ---
-
-## Visual style guidance
-
-- **Palette:** Dark navy header (`#0f1b35` or similar), white cards, subtle grey background.
-  Use one accent colour consistently (blue `#0052cc`, or derive from the project if obvious).
-- **Typography:** System font stack. Large heading for title. Comfortable line-height (1.6–1.7)
-  for body text. Monospace only for file paths in the files table.
-- **Cards:** Rounded corners (8px), thin border (`#dfe1e6`), generous padding (24–28px).
-  Slight shadow for depth.
-- **Approach visuals:** Boxes with dashed or solid borders, arrows via CSS `::after` or
-  border tricks. Keep it minimal — the content matters more than the diagram aesthetics.
-- **Spacing:** Breathe. More whitespace is better. Don't cram.
-- **No icons, no emoji, no gradients** — they date quickly and add noise.
 
 ## What to avoid
 
