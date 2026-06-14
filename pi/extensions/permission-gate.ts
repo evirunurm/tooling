@@ -91,7 +91,7 @@ export default function (pi: ExtensionAPI) {
 		);
 
 		// Notify Warp that the permission request was resolved
-		// Warp clears "Blocked" on prompt_submit, so send that to unblock
+		// Send prompt_submit to transition from "Blocked" back to "In progress"
 		if (isInWarp() && cachedCtx) {
 			sendWarpNotification(buildPromptSubmitPayload(cachedCtx, `Permission ${allowed ? "allowed" : "denied"}: ${toolName}`));
 		}
