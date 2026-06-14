@@ -1,0 +1,18 @@
+{
+  "mode": "auto",
+  "risky": {
+    "bash": [
+      "rm -rf",
+      "rm -r",
+      "sudo",
+      "mkfs",
+      "dd if=",
+      "chmod -R 777 /",
+      "chown -R",
+      "format ",
+      "> /dev/sd"
+    ],
+    "edit": [],
+    "write": []
+  }
+}
