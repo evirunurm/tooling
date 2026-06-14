@@ -90,12 +90,36 @@ export default function (pi: ExtensionAPI) {
 			`${details}\n\nAllow this action?`,
 		);
 
+		// Notify Warp that the permission request was resolved
+		// Warp clears "Blocked" on prompt_submit, so send that to unblock
+		if (isInWarp() && cachedCtx) {
+			sendWarpNotification(buildPromptSubmitPayload(cachedCtx, `Permission ${allowed ? "allowed" : "denied"}: ${toolName}`));
+		}
+
 		if (!allowed) {
 			return { block: true, reason: "Blocked by user" };
 		}
 
 		return undefined;
 	});
+}
+
+function buildPromptSubmitPayload(
+	ctx: { cwd: string; sessionManager: { getSessionFile(): string | undefined } },
+	query: string,
+): Record<string, unknown> {
+	const sessionFile = ctx.sessionManager.getSessionFile();
+	const project = ctx.cwd ? ctx.cwd.split("/").pop() ?? "" : "";
+
+	return {
+		v: 1,
+		agent: "pi",
+		event: "prompt_submit",
+		session_id: sessionFile ?? "",
+		cwd: ctx.cwd,
+		project,
+		query: truncate(query),
+	};
 }
 
 function buildPermissionRequestPayload(
