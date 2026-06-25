@@ -1,0 +1,20 @@
+{
+  "skill_name": "ds-mcp-server",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a React design system with Storybook and I want to add an MCP server so Claude can query my components. My components are in src/components/ following the pattern ComponentName/ComponentName.tsx with _stories/ and _docs/ subdirectories. I deploy on Netlify. Can you set this up for me?",
+      "expected_output": "Should scaffold complete MCP server: scripts/build-mcp-metadata.ts, mcp/ directory with tools/, netlify/functions/mcp.mts, update package.json with dependencies and build script"
+    },
+    {
+      "id": 2,
+      "prompt": "I already have the MCP server set up in my design system repo. Now I want to add a new tool that searches for components by prop name. For example, I want to find all components that have a 'variant' prop. Can you help me create this tool?",
+      "expected_output": "Should create new tool file mcp/tools/search-by-prop.ts with proper Zod schema, handler logic that filters components by prop name, and update mcp/tools/index.ts to register it"
+    },
+    {
+      "id": 3,
+      "prompt": "Help me add an MCP server to my design system. I use Vercel for deployment. My tokens are in src/design-tokens/ not src/tokens/. Will this work with your setup?",
+      "expected_output": "Should explain the enforced structure requirement, potentially offer to adapt the metadata extraction, and scaffold Vercel deployment entry point (api/mcp.ts)"
+    }
+  ]
+}
