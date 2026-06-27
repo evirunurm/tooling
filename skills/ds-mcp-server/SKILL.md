@@ -53,7 +53,27 @@ Ask: "Where do you want to deploy the MCP server?"
 - Cloudflare Workers
 - Self-hosted (Express)
 
-**Step 3: Copy template files**
+**Step 3: Verify Storybook Configuration**
+Before copying templates, verify the Storybook is properly configured:
+
+1. **Check `.storybook/main.ts`** has:
+   - MDX stories pattern: `'../src/**/*.mdx'`
+   - `@storybook/addon-docs` in addons
+   - `reactDocgen: 'react-docgen-typescript'` configured
+
+2. **Verify each component has:**
+   - `_docs/<Component>.mdx` file with comprehensive documentation
+   - `_stories/<Component>.stories.tsx` with specific variants (no Playgrounds)
+   - JSDoc comments on props in the Props interface
+   - Component-level JSDoc describing purpose and usage
+
+3. **If components are missing documentation:**
+   - Create the MDX docs file
+   - Add JSDoc comments to props
+   - Replace any Playground stories with specific variant stories
+   - Add component-level description comments
+
+**Step 4: Copy template files**
 Use the templates in this skill's `templates/` directory:
 
 | Template | Destination |
@@ -66,16 +86,66 @@ Use the templates in this skill's `templates/` directory:
 | `templates/<platform>/*` | Platform-specific entry point |
 | `templates/config/package-additions.json` | Merge into package.json |
 
-**Step 4: Update package.json**
+**Step 5: Update package.json**
 Add the scripts and dependencies from `templates/config/package-additions.json`
 
-**Step 5: Platform-specific config**
+**Step 6: Platform-specific config**
 - Netlify: Add `templates/config/netlify.toml` content
 - Vercel: No config needed (uses `api/` directory)
 - AWS: Add `@types/aws-lambda` dev dependency
 
-**Step 6: Build and verify**
-Have them run `npm run build-mcp-metadata` and verify `metadata.json` is created
+**Step 7: Build and verify**
+
+1. **Build the metadata:**
+   ```bash
+   npm run build-mcp-metadata
+   ```
+   Verify `metadata.json` is created in the correct location.
+
+2. **Run the MCP server locally:**
+   
+   For Netlify:
+   ```bash
+   npm install -g netlify-cli
+   netlify dev
+   ```
+   
+   For Vercel:
+   ```bash
+   npm install -g vercel
+   vercel dev
+   ```
+   
+   For self-hosted:
+   ```bash
+   npx tsx server/mcp.ts
+   ```
+
+3. **Test with MCP Inspector:**
+   In a new terminal:
+   ```bash
+   npx @modelcontextprotocol/inspector
+   ```
+   
+   - Select **"Streamable HTTP"** as the transport
+   - Enter your local MCP URL:
+     - Netlify: `http://localhost:8888/mcp`
+     - Vercel: `http://localhost:3000/api/mcp`
+     - Self-hosted: `http://localhost:3000/mcp`
+   - Click **"Connect"**
+   
+4. **Verify the tools work:**
+   - Click **"List Tools"** to see all available tools
+   - Test `list-components` - should return components with descriptions
+   - Test `get-component` with a component ID - should return props with JSDoc descriptions
+   - Test `get-component-docs` - should return MDX content
+   - Test `get-component-stories` - should return specific variant stories (no Playgrounds)
+
+5. **Fix any issues:**
+   - If descriptions are missing → Add JSDoc comments to components
+   - If MDX is empty → Verify `_docs/<Component>.mdx` files exist
+   - If props lack types/descriptions → Check Storybook's react-docgen-typescript config
+   - If stories include Playgrounds → Replace with specific variant stories
 
 ### 3. Adding a New Tool
 
@@ -96,18 +166,36 @@ Add to `mcp/tools/index.ts`:
 export * as toolName from './tool-name.js'
 ```
 
-**Step 4: Rebuild and test**
-```bash
-npm run build-mcp-metadata
-# Deploy and test with MCP Inspector
-```
+**Step 4: Rebuild and verify**
+
+1. **Rebuild metadata:**
+   ```bash
+   npm run build-mcp-metadata
+   ```
+
+2. **Restart the MCP server** (if running locally)
+
+3. **Test in MCP Inspector:**
+   ```bash
+   npx @modelcontextprotocol/inspector
+   ```
+   
+   - Connect to your local MCP endpoint
+   - Click **"List Tools"** - verify your new tool appears
+   - Test your new tool with sample inputs
+   - Verify the output format matches expectations
+
+4. **Debug if needed:**
+   - Check the MCP server logs for errors
+   - Verify the tool file exports are correct
+   - Ensure the tool is registered in `mcp/tools/index.ts`
 
 ### 4. Key Implementation Details
 
 **Metadata structure:**
 The `metadata.json` contains:
 - `version` - from package.json
-- `components` - Record<componentId, { props, stories, mdx }>
+- `components` - Record<componentId, { props, stories, mdx, description }>
 - `tokens` - { color, spacing, typography }
 
 **Tool structure:**
@@ -152,15 +240,102 @@ src/
     Button/
       Button.tsx           # Component with exported Props interface
       _stories/
-        Button.stories.tsx # Storybook stories
+        Button.stories.tsx # Storybook stories (specific variants, NOT Playgrounds)
       _docs/
-        Button.mdx         # Documentation
+        Button.mdx         # Documentation shown in Storybook
   tokens/
     ts/
       colors.ts            # Design tokens
       spacing.ts
       typography.ts
 ```
+
+### Required Storybook Configuration
+
+For the MCP server to work properly, your Storybook must be configured to extract and display component metadata:
+
+**1. Enable MDX documentation in Storybook:**
+
+Ensure your `.storybook/main.ts` includes MDX support and the docs addon:
+
+```typescript
+export default {
+  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  addons: [
+    '@storybook/addon-docs',  // Required for MDX documentation
+    // ... other addons
+  ],
+}
+```
+
+**2. Configure TypeScript docgen for prop extraction:**
+
+```typescript
+// .storybook/main.ts
+export default {
+  typescript: {
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      shouldRemoveUndefinedFromOptional: true,
+      propFilter: (prop) => {
+        // Filter out native HTML props to reduce noise
+        return !['className', 'style', 'ref', 'key'].includes(prop.name)
+      },
+    },
+  },
+}
+```
+
+**3. Component structure requirements:**
+
+Each component MUST have:
+
+- **Exported Props interface** with JSDoc descriptions:
+  ```typescript
+  export interface ButtonProps {
+    /** Description of what this prop does */
+    variant?: 'primary' | 'secondary'
+    /** Click handler for the button */
+    onClick?: () => void
+  }
+  ```
+
+- **MDX documentation file** (`_docs/<Component>.mdx`) with:
+  - Component purpose and usage guidelines
+  - When to use vs alternatives
+  - Accessibility considerations
+  - Example usage code
+
+- **Stories file** (`_stories/<Component>.stories.tsx`) with:
+  - **Specific variants only** — Stories demonstrate concrete use cases
+  - **NO Playground stories** — Playgrounds conflict with MCP's structured approach
+  - Each story should have meaningful args that show real-world usage
+
+**4. Component-level descriptions:**
+
+Add a component description comment above your component definition:
+
+```typescript
+/**
+ * Button triggers actions or events when activated.
+ * 
+ * Use Button when you need users to:
+ * - Submit forms
+ * - Trigger modal dialogs
+ * - Perform destructive actions (with appropriate variant)
+ * 
+ * For navigation, consider Link component instead.
+ * 
+ * @example
+ * <Button variant="primary" onClick={handleSubmit}>
+ *   Submit
+ * </Button>
+ */
+export const Button = (props: ButtonProps) => { ... }
+```
+
+This description will be extracted and returned by the `list-components` tool to help distinguish similar components.
 
 ## Quick Start
 
@@ -238,7 +413,7 @@ Parsing TypeScript is slow (500ms-2s). Building `metadata.json` at build time me
 
 | Tool | Description | Input |
 |------|-------------|-------|
-| `list-components` | Returns all available component IDs | None |
+| `list-components` | Returns all available component IDs with descriptions | None |
 | `get-component` | Returns props definition for a component | `{ componentId: string }` |
 | `get-component-stories` | Returns story variants | `{ componentId: string }` |
 | `get-component-docs` | Returns MDX documentation | `{ componentId: string }` |
@@ -432,6 +607,55 @@ Make sure your `tsconfig.json` includes:
   }
 }
 ```
+
+### "Playground" stories don't make sense for MCP
+
+**DO NOT create Playground stories.** Playgrounds allow arbitrary prop manipulation, which conflicts with MCP's structured approach. Stories should demonstrate specific, real-world component variants.
+
+**Instead of Playground:**
+```typescript
+// ❌ DON'T: Playground allows arbitrary changes
+export const Playground = { args: {} }
+
+// ✅ DO: Specific variant stories
+export const Primary = { args: { variant: 'primary', children: 'Button' } }
+export const Secondary = { args: { variant: 'secondary', children: 'Button' } }
+export const Disabled = { args: { disabled: true, children: 'Button' } }
+```
+
+### Component descriptions not showing up
+
+Add a JSDoc comment above your component definition:
+
+```typescript
+/**
+ * Brief description of what this component does and when to use it.
+ * 
+ * This description helps AI assistants distinguish between similar components.
+ * Include usage guidelines and alternatives if applicable.
+ */
+export const Button = (props: ButtonProps) => { ... }
+```
+
+The description will be extracted and returned by `list-components` to help users understand what each component does.
+
+### MDX documentation not appearing in Storybook
+
+Ensure your `.storybook/main.ts` includes:
+
+```typescript
+export default {
+  stories: [
+    '../src/**/*.mdx',  // Required for MDX docs
+    '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'
+  ],
+  addons: [
+    '@storybook/addon-docs',  // Required for MDX support
+  ],
+}
+```
+
+Also verify your MDX file is in the `_docs/` subdirectory (e.g., `src/components/Button/_docs/Button.mdx`).
 
 ## Advanced: Custom Token Extraction
 

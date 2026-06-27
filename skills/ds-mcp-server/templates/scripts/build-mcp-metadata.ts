@@ -301,12 +301,55 @@ export function extractTypographyTokens(tokenFile: string): SimpleToken[] {
 	return []
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Component description extraction ───────────────────────────────────────────
+
+export function extractComponentDescription(componentFile: string): string | null {
+	const program = createProgram([componentFile])
+	const checker = program.getTypeChecker()
+	const sourceFile = program.getSourceFile(componentFile)
+	if (!sourceFile) return null
+
+	for (const stmt of sourceFile.statements) {
+		// Look for exported variable declarations with JSDoc (e.g., export const Button = ...)
+		if (ts.isVariableStatement(stmt)) {
+			const isExported = stmt.modifiers?.some(
+				(m) => m.kind === ts.SyntaxKind.ExportKeyword
+			)
+			if (!isExported) continue
+
+			for (const decl of stmt.declarationList.declarations) {
+				if (!ts.isIdentifier(decl.name)) continue
+				const symbol = checker.getSymbolAtLocation(decl.name)
+				if (!symbol) continue
+
+				const description = getJsDocComment(symbol, checker)
+				if (description) return description
+			}
+		}
+		// Also check for exported function declarations
+		if (ts.isFunctionDeclaration(stmt)) {
+			const isExported = stmt.modifiers?.some(
+				(m) => m.kind === ts.SyntaxKind.ExportKeyword
+			)
+			if (!isExported || !stmt.name) continue
+
+			const symbol = checker.getSymbolAtLocation(stmt.name)
+			if (!symbol) continue
+
+			const description = getJsDocComment(symbol, checker)
+			if (description) return description
+		}
+	}
+	return null
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────-
 
 export interface ComponentMeta {
 	props: PropDef[]
 	stories: StoryDef[]
 	mdx: string
+	description: string | null
 }
 
 export interface Metadata {
@@ -346,8 +389,11 @@ function main() {
 			? extractStories(storiesFile)
 			: []
 		const mdx = fs.existsSync(mdxFile) ? readFile(mdxFile) : ''
+		const description = fs.existsSync(componentFile)
+			? extractComponentDescription(componentFile)
+			: null
 
-		components[id] = { props, stories, mdx }
+		components[id] = { props, stories, mdx, description }
 	}
 
 	const colorFile = path.join(root, 'src', 'tokens', 'ts', 'colors.ts')
