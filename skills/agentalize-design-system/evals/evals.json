@@ -1,0 +1,87 @@
+{
+  "skill_name": "agentalize-design-system",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a React design system with Storybook and I want to set up an MCP server so my team can query components programmatically. We use Netlify for deployment. Can you help me set this up? Our components are in src/ui/components/ and stories are in src/ui/components/**/__stories__/*.stories.tsx",
+      "expected_output": "Scaffold MCP server with Netlify functions entry point, metadata extraction script, tool registry, AND generate MCP_SETUP.md documentation explaining the architecture, tools, and workflow.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "mentions_netlify_entry_point",
+          "description": "Response mentions Netlify Functions entry point",
+          "type": "text_contains",
+          "target": "netlify/functions"
+        },
+        {
+          "name": "mentions_metadata_script",
+          "description": "Response mentions metadata extraction script",
+          "type": "text_contains",
+          "target": "build-mcp-metadata"
+        },
+        {
+          "name": "adapts_custom_paths",
+          "description": "Response adapts to user's custom component paths (src/ui/components)",
+          "type": "text_contains",
+          "target": "src/ui/components"
+        },
+        {
+          "name": "generates_documentation",
+          "description": "Response includes or mentions generating MCP_SETUP.md documentation",
+          "type": "text_contains",
+          "target": "MCP_SETUP"
+        },
+        {
+          "name": "explains_architecture",
+          "description": "Documentation explains the MCP architecture rationale",
+          "type": "text_contains",
+          "target": "architecture"
+        },
+        {
+          "name": "documents_tools",
+          "description": "Documentation lists and explains available tools",
+          "type": "text_contains",
+          "target": "tools"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I already have an MCP server set up for my design system. I want to add a new tool called 'search-components' that lets AI assistants search components by name pattern. Can you add this tool and update the documentation?",
+      "expected_output": "Create mcp/tools/search-components.ts with proper handler, schema, register it in mcp/tools/index.ts, AND update MCP_SETUP.md with the new tool documentation including rationale.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "creates_tool_file",
+          "description": "Response includes content for search-components.ts tool file",
+          "type": "text_contains",
+          "target": "search-components.ts"
+        },
+        {
+          "name": "includes_handler_function",
+          "description": "Tool includes a handler function",
+          "type": "text_contains",
+          "target": "handler"
+        },
+        {
+          "name": "updates_tool_registry",
+          "description": "Response shows how to register tool in index.ts",
+          "type": "text_contains",
+          "target": "index.ts"
+        },
+        {
+          "name": "updates_documentation",
+          "description": "Response mentions updating MCP_SETUP.md documentation",
+          "type": "text_contains",
+          "target": "MCP_SETUP"
+        },
+        {
+          "name": "documents_rationale",
+          "description": "Documentation includes rationale for the new tool",
+          "type": "text_contains",
+          "target": "rationale"
+        }
+      ]
+    }
+  ]
+}

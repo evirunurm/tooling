@@ -1,57 +1,94 @@
 ---
-name: ds-mcp-server
-disable-model-invocation: true
+name: agentalize-design-system
 description: |
   Set up and manage an MCP (Model Context Protocol) server for React design systems with Storybook.
   
   Use this skill when:
-  - The user wants to add MCP capabilities to their design system repository
-  - They need to expose components, props, stories, and design tokens as MCP tools
+  - The user wants to add MCP/agentic capabilities to their design system repository
+  - They need to expose components, props, stories, and design tokens through MCP tools
   - They want AI assistants to query their design system programmatically
-  - Setting up a new MCP server from scratch, adding tools to an existing one, or documenting the setup
+  - Setting up a new MCP server from scratch or adding tools to an existing one
   
-  The skill scaffolds the complete infrastructure including TypeScript-based metadata extraction,
-  tool definitions in separate files, and deployment-ready serverless functions.
+  The skill scaffolds the complete infrastructure including TypeScript-based metadata extraction and a standard
+  tool definitions
 ---
 
-# Design System MCP Server
+# Storybook as Design System Documentation
 
-This skill helps users build an MCP (Model Context Protocol) server that exposes their React + Storybook design system to AI assistants.
+## Storybook's Current Role
 
-## When to Use This Skill
+Storybook is currently primarily used as a **development playground** for UI components. While useful for developers during implementation, it often feels limited in broader value.
 
-Trigger this skill when the user wants to:
-- Add MCP capabilities to their design system repository
-- Expose components, props, stories, and design tokens as MCP tools
-- Set up a new MCP server from scratch
-- Add new tools to an existing MCP server
-- Document their MCP setup
+Its most valuable features are:
+- Listing all available components
+- Displaying component props and variants
+- (Rarely) documenting design patterns and usage guidelines
 
-## How to Use This Skill
+## Design Patterns
 
-### 1. Determine the User's Goal
+**Design patterns** are specific UX/UI decisions made by designers when building screens. These patterns usually require deep knowledge of the **design system** and established UX principles.
+
+### Examples of Design Patterns
+
+- In modals, the **"Accept"** button is placed on the **right**, and the **"Cancel"** button on the **left**.
+- In data tables, if an item is clickable, the **entire row** is interactive.
+- When navigating from a filtered search results table to a detail page:
+  - Show a **Back** button and **breadcrumbs**.
+  - Returning via the Back button should **restore the original filters and search state**.
+
+These kinds of decisions are often documented in external platforms (Zeroheight, Confluence, Supernova, etc.), when they even exist.
+
+## Our Vision for Storybook
+
+We want to evolve Storybook into the **single source of truth** for our design system, effectively turning it into a **Zeroheight / Confluence / Supernova** equivalent.
+
+### Target Audiences
+- **Designers**
+- **Engineers**
+- **AI systems** (LLMs)
+
+**Goal**: Make all design decisions, patterns, and rationale easily accessible to both humans *and* AI. This enables AI to:
+- Make better design and implementation decisions
+- Justify choices using our own design system logic
+- Maintain consistency across the product
+
+## Why Storybook?
+
+We chose Storybook as the foundation for this documentation hub because:
+
+- It already provides a **structured documentation scaffolding**
+- It includes excellent helpers to **display components and their properties** within Markdown documentation
+- We can **extract component metadata** via a build script that parses TypeScript and Storybook files
+
+This gives us a strong technical base to build a comprehensive, living design system documentation.
+
+- What Stoprybook is not:
+  - A developer's only domain, becoming a messy place where they add the variants they want 
+  - A documentation no one looks at, only to see it certain component exists or not.
+- What Storybook is:
+  - A complete shared documentation of a complex design system.
+  - The core of knowledge a company shares.
+
+## How to use this skill
+
+### 1. Determine the user's goal
 
 Ask what they want to do:
-- **"Set up a new MCP server"** → Go to scaffolding section
-- **"Add a new tool"** → Go to tool creation section
-- **"Document my MCP setup"** → Generate documentation from SKILL.md body
+- **"Set up a new MCP server"** → Go to scaffolding section (includes documentation)
+- **"Add a new tool"** → Go to tool creation section (includes documentation update)
 
 ### 2. Scaffolding a New MCP Server
 
 When setting up from scratch:
 
 **Step 1: Check prerequisites**
-- Verify they have a React + Storybook design system
-- Confirm their file structure matches: `src/components/<Name>/<Name>.tsx`, `_stories/`, `_docs/`
-- Check package.json for TypeScript
-
-**Step 2: Ask about deployment target**
-Ask: "Where do you want to deploy the MCP server?"
-- Netlify Functions
-- Vercel Edge Functions
-- AWS Lambda
-- Cloudflare Workers
-- Self-hosted (Express)
+- [] Verify they have a React + Storybook design system
+- [] Identify their file structure:
+  - Where are components stored? (e.g., `src/components/`, `app/components/`)
+  - Where are Storybook stories located? (e.g., `__stories__/`, `*.stories.tsx` alongside components)
+  - Where should MDX documentation be stored? (e.g., `__docs__/`, `*.mdx` alongside components)
+- [] Check package.json for TypeScript
+- [] Make sure it's clear which components should be exposed through the MCP, and that all of them have stories defined. If some of them don't, ask the user to confirm next actions.
 
 **Step 3: Verify Storybook Configuration**
 Before copying templates, verify the Storybook is properly configured:
@@ -89,10 +126,12 @@ Use the templates in this skill's `templates/` directory:
 **Step 5: Update package.json**
 Add the scripts and dependencies from `templates/config/package-additions.json`
 
-**Step 6: Platform-specific config**
-- Netlify: Add `templates/config/netlify.toml` content
-- Vercel: No config needed (uses `api/` directory)
-- AWS: Add `@types/aws-lambda` dev dependency
+**Step 6: Generate documentation**
+Create `MCP_SETUP.md` in the project root with:
+- **Architecture overview**: Explain the metadata flow (build-time extraction → runtime serving)
+- **Tool reference**: List all available MCP tools with descriptions and example inputs
+- **Development workflow**: How to add new components and regenerate metadata
+- **Deployment notes**: Platform-specific details for the chosen target
 
 **Step 7: Build and verify**
 
@@ -102,24 +141,7 @@ Add the scripts and dependencies from `templates/config/package-additions.json`
    ```
    Verify `metadata.json` is created in the correct location.
 
-2. **Run the MCP server locally:**
-   
-   For Netlify:
-   ```bash
-   npm install -g netlify-cli
-   netlify dev
-   ```
-   
-   For Vercel:
-   ```bash
-   npm install -g vercel
-   vercel dev
-   ```
-   
-   For self-hosted:
-   ```bash
-   npx tsx server/mcp.ts
-   ```
+2. **Run the MCP server locally**
 
 3. **Test with MCP Inspector:**
    In a new terminal:
@@ -147,6 +169,14 @@ Add the scripts and dependencies from `templates/config/package-additions.json`
    - If props lack types/descriptions → Check Storybook's react-docgen-typescript config
    - If stories include Playgrounds → Replace with specific variant stories
 
+**Step 6: Ask about deployment target**
+Ask: "Where do you want to deploy the MCP server?"
+- Netlify Functions
+- Vercel Edge Functions
+- AWS Lambda
+- Cloudflare Workers
+- Self-hosted (Express)
+
 ### 3. Adding a New Tool
 
 When the user wants to add a tool:
@@ -166,7 +196,12 @@ Add to `mcp/tools/index.ts`:
 export * as toolName from './tool-name.js'
 ```
 
-**Step 4: Rebuild and verify**
+**Step 4: Document the new tool**
+Update `MCP_SETUP.md` to include:
+- Add the new tool to the **Tool reference** section with description, inputs, and example outputs
+- Add a **Rationale** subsection explaining why this tool exists and when to use it
+
+**Step 5: Rebuild and verify**
 
 1. **Rebuild metadata:**
    ```bash
